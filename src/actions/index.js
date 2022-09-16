@@ -1,3 +1,10 @@
+export const fetchHeroes = (request) => (dispatch) => {
+    dispatch(heroesFetching);
+    request('http://localhost:3001/heroes')
+        .then((data) => dispatch(heroesFetched(data)))
+        .catch(() => dispatch(heroesFetchingError()));
+};
+
 export const heroesFetching = () => {
     return {
         type: 'HEROES_FETCHING',
@@ -30,10 +37,12 @@ export const filtersFetching = () => {
     };
 };
 
-export const filtersFetched = (filters) => {
+export const filtersFetched = (filter) => {
+    // т.к. мы подрубились к redux-thunk-middleware
+
     return {
         type: 'FILTERS_FETCHED',
-        payload: filters,
+        payload: filter,
     };
 };
 
