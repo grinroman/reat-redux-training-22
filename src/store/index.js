@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import filters from '../reducers/filters';
-import heroes from '../reducers/heroes';
+import heroes from '../components/heroesList/heroesSlice'; // экспорт дефолтного reducer'а
 
 // store == {dispatch, getState} именно в этом месте!
 const stringMiddleWare = (/*store*/) => (next /*dispatch*/) => (action) => {
