@@ -1,6 +1,18 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import {
+    createSlice,
+    createAsyncThunk,
+    createEntityAdapter,
+} from '@reduxjs/toolkit';
 import { useHttp } from '../../hooks/http.hook';
-const initialState = { heroes: [], heroesLoadingStatus: 'indle' };
+
+const heroesAdapter = createEntityAdapter();
+
+// const initialState = { heroes: [], heroesLoadingStatus: 'indle' };
+
+const initialState = heroesAdapter.getInitialState({
+    //полученная инфа лежит в entities
+    heroesLoadingStatus: 'indle',
+});
 
 export const fetchHeroes = createAsyncThunk('heroes/fetchHeroes', () => {
     const { request } = useHttp();
@@ -13,12 +25,10 @@ const heroesSlice = createSlice({
     reducers: {
         heroCreated: (state, action) => {
             // мутабельная запись на самом деле конаертируется в иммутабельную потому что внутри лежит inner.js
-            state.heroes.push(action.payload);
+            heroesAdapter.addOne(state, action.payload);
         }, // формируем сам action creator а потом справа пишем само изменение state
         heroDeleted: (state, action) => {
-            state.heroes = state.heroes.filter(
-                (item) => item.id !== action.payload
-            );
+            heroesAdapter.removeOne(state, action.payload);
         },
     },
     extraReducers: (builder) =>
@@ -28,7 +38,8 @@ const heroesSlice = createSlice({
             })
             .addCase(fetchHeroes.fulfilled, (state, action) => {
                 state.heroesLoadingStatus = 'idle';
-                state.heroes = action.payload; //т.к. данные из промиса автоматически прийдут в payload
+                //state.heroes = action.payload; //т.к. данные из промиса автоматически прийдут в payload
+                heroesAdapter.setAll(state, action.payload);
             })
             .addCase(fetchHeroes.rejected, (state) => {
                 state.heroesLoadingStatus = 'error';
@@ -40,6 +51,12 @@ const heroesSlice = createSlice({
 const { actions, reducer } = heroesSlice;
 
 export default reducer;
+
+export const { selectAll /*вытягивается*/ } = heroesAdapter.getSelectors(
+    // оттягивает на себя получение объектов в нормальном виде из-за прикола нашего адаптера -
+    (state) => state.heroes // получаем всё адекватно в виде массива. После этог ещё несет в себе мемоизацию,
+); // что исключает потребность в усложнении createSelector в компоненте
+
 export const {
     heroesFetching,
     heroesFetched,
